@@ -10,5 +10,15 @@ export const routes: Routes = [
     path: 'tags',
     loadComponent: () =>
       import('./workshops/tag-list/tag-list.page').then((m) => m.TagListPage)
+  },
+  {
+    path: 'edit-user',
+    loadComponent: () =>
+      import('./workshops/edit-user/edit-user.page').then((m) => m.EditUserPage)
+  },
+  {
+    path: 'edit-contact',
+    loadComponent: () =>
+      import('./workshops/edit-contact/edit-contact.page').then((m) => m.EditContactPage)
   }
 ];

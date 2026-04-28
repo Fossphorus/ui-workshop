@@ -1,22 +1,32 @@
 .workshop-shell {
   min-height: 100%;
-  padding: 20px 14px;
+  padding: 18px 14px 28px;
 }
 
-.object-card {
+.tag-manager-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
-  padding: 16px;
+  padding: 12px;
 }
 
-.object-summary {
+.section-header {
   align-items: flex-start;
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
+}
+
+.tag-tools {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.tag-tools ion-searchbar {
+  padding: 0;
 }
 
 .eyebrow {
@@ -34,30 +44,12 @@ h1 {
   margin: 0;
 }
 
-.tag-row {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 34px;
+.managed-tag-list {
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.add-tag-button {
-  --padding-end: 0;
-  --padding-start: 0;
-  flex: 0 0 32px;
-  height: 32px;
-  margin: 0;
-  width: 32px;
-}
-
-.empty-message {
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.tag-chip,
-.picker-tag {
+.tag-token {
   align-items: center;
   background: var(--tag-bg);
   border: 1px solid var(--tag-border);
@@ -68,87 +60,27 @@ h1 {
   font-weight: 700;
   gap: 5px;
   line-height: 1;
-  max-width: min(220px, calc(100vw - 92px));
+  max-width: 118px;
   min-height: 28px;
   padding: 4px 7px;
 }
 
-.picker-tag {
-  max-width: 116px;
-}
-
-.tag-name,
-.picker-tag span {
+.tag-token span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.remove-tag {
-  align-items: center;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  color: currentColor;
-  display: inline-flex;
-  flex: 0 0 auto;
-  height: 20px;
-  justify-content: center;
-  margin: 0 -3px 0 0;
-  padding: 0;
-  width: 20px;
-}
-
+.loading-row,
 .inline-error,
 .modal-error {
   align-items: center;
   display: flex;
-  gap: 6px;
-  margin-top: 14px;
-}
-
-.skeleton-list {
-  display: grid;
   gap: 8px;
+  padding: 14px 4px;
 }
 
-.skeleton-list ion-skeleton-text {
-  border-radius: 999px;
-  height: 30px;
-  margin: 0;
-  width: 78%;
-}
-
-.skeleton-list ion-skeleton-text + ion-skeleton-text {
-  width: 54%;
-}
-
-.selected-scenario {
-  --background: #eff6ff;
-}
-
-.picker-tools {
-  background: #ffffff;
-  padding: 12px 12px 4px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-
-.sort-row {
-  align-items: center;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.tag-picker-list ion-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.create-form {
+.tag-editor-form {
   display: grid;
   gap: 14px;
   padding: 14px;
@@ -166,7 +98,6 @@ h1 {
   border: 1px solid var(--swatch-border);
   border-radius: 999px;
   height: 30px;
-  position: relative;
   width: 30px;
 }
 
@@ -174,13 +105,6 @@ h1 {
   box-shadow: 0 0 0 3px #bfdbfe;
 }
 
-.create-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  padding-top: 4px;
-}
-
-ion-modal.tag-picker-modal {
+ion-modal.tag-editor-modal {
   --border-radius: 18px 18px 0 0;
 }

@@ -29,6 +29,13 @@ export class TagManagerMockService {
     return this.snapshot();
   }
 
+  async loadTags(): Promise<Tag[]> {
+    const fixture = getTagFixture('manyGlobal');
+    this.tags = fixture.tags.map((tag) => ({ ...tag }));
+    await this.delay(120);
+    return this.tags.map((tag) => ({ ...tag }));
+  }
+
   async attachTag(tagId: string): Promise<ManagedObject> {
     await this.delay(180);
     if (this.scenarioId === 'attachError') {
@@ -76,6 +83,33 @@ export class TagManagerMockService {
 
     this.tags = [...this.tags, tag];
     return tag;
+  }
+
+  async updateTag(tagId: string, name: string, color: TagColorName): Promise<Tag> {
+    await this.delay(180);
+    const normalizedName = normalizeTagName(name);
+    const duplicate = this.tags.find((tag) => tag.id !== tagId && normalizeTagName(tag.name) === normalizedName);
+    if (duplicate) {
+      throw new Error('A tag with that name already exists.');
+    }
+
+    const tag = this.tags.find((item) => item.id === tagId);
+    if (!tag) {
+      throw new Error('Tag not found.');
+    }
+
+    const updatedTag: Tag = { ...tag, name: normalizedName, color };
+    this.tags = this.tags.map((item) => (item.id === tagId ? updatedTag : item));
+    return updatedTag;
+  }
+
+  async deleteTag(tagId: string): Promise<void> {
+    await this.delay(160);
+    this.tags = this.tags.filter((tag) => tag.id !== tagId);
+    this.object = {
+      ...this.object,
+      tagIds: this.object.tagIds.filter((id) => id !== tagId)
+    };
   }
 
   private snapshot(): TagWorkshopData {

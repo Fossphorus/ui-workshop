@@ -1,0 +1,176 @@
+@if (store.loading()) {
+  <div class="skeleton-list" aria-label="Loading tags">
+    <ion-skeleton-text animated />
+    <ion-skeleton-text animated />
+  </div>
+} @else {
+  <div class="tag-row" aria-label="Assigned tags">
+    <ion-button class="add-tag-button" fill="clear" shape="round" aria-label="Add tag" (click)="store.openPicker()">
+      <ion-icon name="add" />
+    </ion-button>
+
+    @if (store.assignedTags().length === 0) {
+      <span class="empty-message">no tags</span>
+    }
+
+    @for (tag of store.assignedTags(); track tag.id) {
+      <span class="tag-chip" [style]="tagStyle(tag)">
+        <ion-icon name="pricetag" aria-hidden="true" />
+        <span class="tag-name">{{ tag.name }}</span>
+        <button type="button" class="remove-tag" [attr.aria-label]="'Remove ' + tag.name" (click)="store.detachTag(tag)">
+          <ion-icon name="close" />
+        </button>
+      </span>
+    }
+  </div>
+}
+
+@if (store.error()) {
+  <ion-text color="danger" class="inline-error">
+    <ion-icon name="alert-circle" aria-hidden="true" />
+    {{ store.error() }}
+  </ion-text>
+}
+
+<ion-modal
+  class="tag-picker-modal"
+  [isOpen]="store.pickerOpen()"
+  [breakpoints]="[0, 0.88]"
+  [initialBreakpoint]="0.88"
+  (didDismiss)="store.closePicker()"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Add tag</ion-title>
+        <ion-buttons slot="end">
+          <ion-button aria-label="Close add tag" (click)="store.closePicker()">
+            <ion-icon name="close" />
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      @if (!store.createOpen()) {
+        <div class="picker-tools">
+          <ion-searchbar
+            placeholder="Search tags"
+            [ngModel]="store.searchTerm()"
+            (ngModelChange)="store.setSearchTerm($event)"
+            debounce="0"
+          />
+
+          <div class="sort-row">
+            <ion-segment [ngModel]="store.sortMode()" (ngModelChange)="store.setSortMode($event)">
+              <ion-segment-button value="name">
+                <ion-label>Name</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="color">
+                <ion-label>Color</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+            <ion-button fill="outline" size="small" (click)="store.openCreate()">
+              <ion-icon name="add" slot="start" />
+              New
+            </ion-button>
+          </div>
+        </div>
+
+        <ion-list lines="full" class="tag-picker-list">
+          @for (item of store.availableTags(); track item.tag.id) {
+            <ion-item
+              button
+              [disabled]="item.attached || store.saving()"
+              [detail]="false"
+              (click)="store.attachTag(item.tag)"
+            >
+              <span class="picker-tag" [style]="tagStyle(item.tag)" slot="start">
+                <ion-icon name="pricetag" aria-hidden="true" />
+                <span>{{ item.tag.name }}</span>
+              </span>
+              <ion-label>{{ item.tag.name }}</ion-label>
+              @if (item.attached) {
+                <ion-note slot="end">Added</ion-note>
+              }
+            </ion-item>
+          } @empty {
+            <ion-item>
+              <ion-label>No matching tags</ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      } @else {
+        <form class="create-form" (ngSubmit)="store.createTag()">
+          <ion-item>
+            <ion-input
+              label="Name"
+              labelPlacement="stacked"
+              autocomplete="off"
+              [ngModel]="store.createName()"
+              name="createName"
+              (ngModelChange)="store.setCreateName($event)"
+            />
+          </ion-item>
+
+          <ion-item>
+            <ion-select
+              label="Color"
+              labelPlacement="stacked"
+              interface="popover"
+              [ngModel]="store.createColor()"
+              name="createColor"
+              (ngModelChange)="store.setCreateColor($event)"
+            >
+              @for (color of store.colors(); track color.name) {
+                <ion-select-option [value]="color.name">{{ color.label }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+
+          <div class="palette-preview" aria-label="Selected color preview">
+            @for (color of store.colors(); track color.name) {
+              <button
+                type="button"
+                class="color-swatch"
+                [class.selected]="store.createColor() === color.name"
+                [style]="colorStyle(color.name)"
+                [attr.aria-label]="color.label"
+                (click)="store.setCreateColor(color.name)"
+              ></button>
+            }
+          </div>
+
+          @if (store.exactNameExists()) {
+            <ion-note color="medium">This existing tag will be attached.</ion-note>
+          }
+
+          <div class="create-actions">
+            <ion-button fill="clear" type="button" (click)="store.closeCreate()">Back</ion-button>
+            <ion-button type="submit" [disabled]="!store.canCreate()">
+              @if (store.saving()) {
+                <ion-spinner name="crescent" />
+              } @else {
+                Create and add
+              }
+            </ion-button>
+          </div>
+        </form>
+      }
+
+      @if (store.error()) {
+        <ion-text color="danger" class="modal-error">
+          <ion-icon name="alert-circle" aria-hidden="true" />
+          {{ store.error() }}
+        </ion-text>
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-toast
+  [isOpen]="!!store.toastMessage()"
+  [message]="store.toastMessage()"
+  [duration]="1500"
+  position="bottom"
+  (didDismiss)="store.clearToast()"
+/>

@@ -1,0 +1,27 @@
+<ion-menu side="start" menuId="component-menu" contentId="main-content" type="overlay">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Components</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-list lines="full">
+      @for (route of routes; track route.path) {
+        <ion-item
+          button
+          [routerLink]="route.path"
+          routerLinkActive="selected-route"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [detail]="false"
+          (click)="close()"
+        >
+          <ion-icon [name]="route.icon" slot="start" aria-hidden="true" />
+          <ion-label>
+            <h2>{{ route.label }}</h2>
+            <p>{{ route.description }}</p>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  </ion-content>
+</ion-menu>

@@ -1,0 +1,78 @@
+<app-workshop-nav />
+
+<div class="ion-page" id="main-content">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button menu="component-menu" aria-label="Open components">
+          <ion-icon name="menu" />
+        </ion-menu-button>
+      </ion-buttons>
+      <ion-title>Edit user</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <main class="edit-user-shell">
+      <form class="edit-user-form" (ngSubmit)="userStore.save()">
+        <ion-item>
+          <ion-input
+            label="Username"
+            labelPlacement="stacked"
+            autocomplete="username"
+            [ngModel]="userStore.username()"
+            name="username"
+            required
+            (ngModelChange)="userStore.setUsername($event)"
+          />
+        </ion-item>
+
+        <section class="form-field" aria-labelledby="tags-label">
+          <ion-label id="tags-label">Tags</ion-label>
+          <app-tag-list />
+        </section>
+
+        <ion-item>
+          <ion-select
+            label="Role"
+            labelPlacement="stacked"
+            interface="popover"
+            [ngModel]="userStore.role()"
+            name="role"
+            (ngModelChange)="setRole($event)"
+          >
+            @for (role of userStore.roles(); track role) {
+              <ion-select-option [value]="role">{{ role }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-textarea
+            label="Notes"
+            labelPlacement="stacked"
+            autoGrow="true"
+            rows="5"
+            [ngModel]="userStore.notes()"
+            name="notes"
+            (ngModelChange)="userStore.setNotes($event)"
+          />
+        </ion-item>
+
+        @if (!userStore.canSave()) {
+          <ion-note color="danger">Username is required.</ion-note>
+        }
+
+        <ion-button type="submit" expand="block" [disabled]="!userStore.canSave()">Save user</ion-button>
+      </form>
+    </main>
+  </ion-content>
+
+  <ion-toast
+    [isOpen]="!!userStore.savedMessage()"
+    [message]="userStore.savedMessage()"
+    [duration]="1500"
+    position="bottom"
+    (didDismiss)="userStore.clearSavedMessage()"
+  />
+</div>

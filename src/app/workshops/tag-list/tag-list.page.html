@@ -1,222 +1,170 @@
-<ion-menu side="end" menuId="scenario-menu" contentId="main-content" type="overlay">
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>Scenarios</ion-title>
-    </ion-toolbar>
-  </ion-header>
-  <ion-content>
-    <ion-list lines="full">
-      @for (scenario of store.scenarios(); track scenario.id) {
-        <ion-item
-          button
-          [detail]="false"
-          [class.selected-scenario]="store.scenarioId() === scenario.id"
-          (click)="selectScenario(scenario.id)"
-        >
-          <ion-label>
-            <h2>{{ scenario.label }}</h2>
-            <p>{{ scenario.description }}</p>
-          </ion-label>
-          @if (store.scenarioId() === scenario.id) {
-            <ion-icon name="checkmark-circle" slot="end" aria-label="Selected scenario" />
-          }
-        </ion-item>
-      }
-    </ion-list>
-  </ion-content>
-</ion-menu>
+<app-workshop-nav />
 
 <div class="ion-page" id="main-content">
   <ion-header>
     <ion-toolbar>
-      <ion-title>Tag manager</ion-title>
-      <ion-buttons slot="end">
-        <ion-menu-button menu="scenario-menu" aria-label="Open scenarios">
+      <ion-buttons slot="start">
+        <ion-menu-button menu="component-menu" aria-label="Open components">
           <ion-icon name="menu" />
         </ion-menu-button>
+      </ion-buttons>
+      <ion-title>Tag manager</ion-title>
+      <ion-buttons slot="end">
+        <ion-button aria-label="Add tag" (click)="store.openCreate()">
+          <ion-icon name="add" />
+        </ion-button>
       </ion-buttons>
     </ion-toolbar>
   </ion-header>
 
   <ion-content>
     <main class="workshop-shell">
-      <section class="object-card" aria-labelledby="object-title">
-        <div class="object-summary">
+      <section class="tag-manager-card" aria-labelledby="tag-manager-title">
+        <div class="section-header">
           <div>
-            <p class="eyebrow">User</p>
-            <h1 id="object-title">{{ store.object()?.name || 'Loading user' }}</h1>
+            <p class="eyebrow">Global tags</p>
+            <h1 id="tag-manager-title">Tags</h1>
           </div>
-          <ion-badge color="light">{{ store.scenarioId() }}</ion-badge>
+          <ion-button fill="outline" size="small" (click)="store.openCreate()">
+            <ion-icon name="add" slot="start" />
+            New
+          </ion-button>
+        </div>
+
+        <div class="tag-tools">
+          <ion-searchbar
+            placeholder="Search tags"
+            [ngModel]="store.searchTerm()"
+            (ngModelChange)="store.setSearchTerm($event)"
+            debounce="0"
+          />
+
+          <ion-segment [ngModel]="store.sortMode()" (ngModelChange)="store.setSortMode($event)">
+            <ion-segment-button value="name">
+              <ion-label>Name</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="color">
+              <ion-label>Color</ion-label>
+            </ion-segment-button>
+          </ion-segment>
         </div>
 
         @if (store.loading()) {
-          <div class="skeleton-list" aria-label="Loading tags">
-            <ion-skeleton-text animated />
-            <ion-skeleton-text animated />
+          <div class="loading-row">
+            <ion-spinner name="crescent" />
+            <span>Loading tags</span>
           </div>
         } @else {
-          <div class="tag-row" aria-label="Assigned tags">
-            <ion-button class="add-tag-button" fill="clear" shape="round" aria-label="Add tag" (click)="store.openPicker()">
-              <ion-icon name="add" />
-            </ion-button>
-
-            @if (store.assignedTags().length === 0) {
-              <span class="empty-message">no tags</span>
+          <ion-list lines="full" class="managed-tag-list">
+            @for (tag of store.visibleTags(); track tag.id) {
+              <ion-item>
+                <span class="tag-token" [style]="tagStyle(tag.color)" slot="start">
+                  <ion-icon name="pricetag" aria-hidden="true" />
+                  <span>{{ tag.name }}</span>
+                </span>
+                <ion-label>
+                  <h2>{{ tag.name }}</h2>
+                  <p>{{ tag.color }}</p>
+                </ion-label>
+                <ion-buttons slot="end">
+                  <ion-button [attr.aria-label]="'Edit ' + tag.name" (click)="store.openEdit(tag)">
+                    <ion-icon name="create" />
+                  </ion-button>
+                  <ion-button color="danger" [attr.aria-label]="'Delete ' + tag.name" (click)="store.deleteTag(tag)">
+                    <ion-icon name="trash" />
+                  </ion-button>
+                </ion-buttons>
+              </ion-item>
+            } @empty {
+              <ion-item>
+                <ion-label>No tags</ion-label>
+              </ion-item>
             }
-
-            @for (tag of store.assignedTags(); track tag.id) {
-              <span class="tag-chip" [style]="tagStyle(tag)">
-                <ion-icon name="pricetag" aria-hidden="true" />
-                <span class="tag-name">{{ tag.name }}</span>
-                <button type="button" class="remove-tag" [attr.aria-label]="'Remove ' + tag.name" (click)="store.detachTag(tag)">
-                  <ion-icon name="close" />
-                </button>
-              </span>
-            }
-          </div>
+          </ion-list>
         }
 
         @if (store.error()) {
-          <ion-text color="danger" class="inline-error">
-            <ion-icon name="alert-circle" aria-hidden="true" />
-            {{ store.error() }}
-          </ion-text>
+          <ion-text color="danger" class="inline-error">{{ store.error() }}</ion-text>
         }
       </section>
     </main>
   </ion-content>
 
   <ion-modal
-    class="tag-picker-modal"
-    [isOpen]="store.pickerOpen()"
-    [breakpoints]="[0, 0.88]"
-    [initialBreakpoint]="0.88"
-    (didDismiss)="store.closePicker()"
+    class="tag-editor-modal"
+    [isOpen]="store.editorOpen()"
+    [breakpoints]="[0, 0.7]"
+    [initialBreakpoint]="0.7"
+    (didDismiss)="store.closeEditor()"
   >
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>Add tag</ion-title>
+          <ion-title>{{ store.editorTitle() }}</ion-title>
           <ion-buttons slot="end">
-            <ion-button aria-label="Close add tag" (click)="store.closePicker()">
+            <ion-button aria-label="Close tag editor" (click)="store.closeEditor()">
               <ion-icon name="close" />
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        @if (!store.createOpen()) {
-          <div class="picker-tools">
-            <ion-searchbar
-              placeholder="Search tags"
-              [ngModel]="store.searchTerm()"
-              (ngModelChange)="store.setSearchTerm($event)"
-              debounce="0"
+        <form class="tag-editor-form" (ngSubmit)="store.saveTag()">
+          <ion-item>
+            <ion-input
+              label="Name"
+              labelPlacement="stacked"
+              autocomplete="off"
+              [ngModel]="store.editorName()"
+              name="tagName"
+              required
+              (ngModelChange)="store.setEditorName($event)"
             />
+          </ion-item>
 
-            <div class="sort-row">
-              <ion-segment [ngModel]="store.sortMode()" (ngModelChange)="store.setSortMode($event)">
-                <ion-segment-button value="name">
-                  <ion-label>Name</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="color">
-                  <ion-label>Color</ion-label>
-                </ion-segment-button>
-              </ion-segment>
-              <ion-button fill="outline" size="small" (click)="store.openCreate()">
-                <ion-icon name="add" slot="start" />
-                New
-              </ion-button>
-            </div>
+          <ion-item>
+            <ion-select
+              label="Color"
+              labelPlacement="stacked"
+              interface="popover"
+              [ngModel]="store.editorColor()"
+              name="tagColor"
+              (ngModelChange)="store.setEditorColor($event)"
+            >
+              @for (color of store.colors(); track color.name) {
+                <ion-select-option [value]="color.name">{{ color.label }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+
+          <div class="palette-preview" aria-label="Selected color preview">
+            @for (color of store.colors(); track color.name) {
+              <button
+                type="button"
+                class="color-swatch"
+                [class.selected]="store.editorColor() === color.name"
+                [style]="{
+                  '--swatch-bg': color.value,
+                  '--swatch-border': color.name === 'white' ? '#cbd5e1' : color.value
+                }"
+                [attr.aria-label]="color.label"
+                (click)="store.setEditorColor(color.name)"
+              ></button>
+            }
           </div>
 
-          <ion-list lines="full" class="tag-picker-list">
-            @for (item of store.availableTags(); track item.tag.id) {
-              <ion-item
-                button
-                [disabled]="item.attached || store.saving()"
-                [detail]="false"
-                (click)="store.attachTag(item.tag)"
-              >
-                <span class="picker-tag" [style]="tagStyle(item.tag)" slot="start">
-                  <ion-icon name="pricetag" aria-hidden="true" />
-                  <span>{{ item.tag.name }}</span>
-                </span>
-                <ion-label>{{ item.tag.name }}</ion-label>
-                @if (item.attached) {
-                  <ion-note slot="end">Added</ion-note>
-                }
-              </ion-item>
-            } @empty {
-              <ion-item>
-                <ion-label>No matching tags</ion-label>
-              </ion-item>
+          @if (store.error()) {
+            <ion-text color="danger" class="modal-error">{{ store.error() }}</ion-text>
+          }
+
+          <ion-button type="submit" expand="block" [disabled]="!store.canSave()">
+            @if (store.saving()) {
+              <ion-spinner name="crescent" />
+            } @else {
+              Save tag
             }
-          </ion-list>
-        } @else {
-          <form class="create-form" (ngSubmit)="store.createTag()">
-            <ion-item>
-              <ion-input
-                label="Name"
-                labelPlacement="stacked"
-                autocomplete="off"
-                [ngModel]="store.createName()"
-                name="createName"
-                (ngModelChange)="store.setCreateName($event)"
-              />
-            </ion-item>
-
-            <ion-item>
-              <ion-select
-                label="Color"
-                labelPlacement="stacked"
-                interface="popover"
-                [ngModel]="store.createColor()"
-                name="createColor"
-                (ngModelChange)="store.setCreateColor($event)"
-              >
-                @for (color of store.colors(); track color.name) {
-                  <ion-select-option [value]="color.name">{{ color.label }}</ion-select-option>
-                }
-              </ion-select>
-            </ion-item>
-
-            <div class="palette-preview" aria-label="Selected color preview">
-              @for (color of store.colors(); track color.name) {
-                <button
-                  type="button"
-                  class="color-swatch"
-                  [class.selected]="store.createColor() === color.name"
-                  [style]="colorStyle(color.name)"
-                  [attr.aria-label]="color.label"
-                  (click)="store.setCreateColor(color.name)"
-                ></button>
-              }
-            </div>
-
-            @if (store.exactNameExists()) {
-              <ion-note color="medium">This existing tag will be attached.</ion-note>
-            }
-
-            <div class="create-actions">
-              <ion-button fill="clear" type="button" (click)="store.closeCreate()">Back</ion-button>
-              <ion-button type="submit" [disabled]="!store.canCreate()">
-                @if (store.saving()) {
-                  <ion-spinner name="crescent" />
-                } @else {
-                  Create and add
-                }
-              </ion-button>
-            </div>
-          </form>
-        }
-
-        @if (store.error()) {
-          <ion-text color="danger" class="modal-error">
-            <ion-icon name="alert-circle" aria-hidden="true" />
-            {{ store.error() }}
-          </ion-text>
-        }
+          </ion-button>
+        </form>
       </ion-content>
     </ng-template>
   </ion-modal>
