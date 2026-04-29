@@ -15,7 +15,7 @@ test('tag manager creates a global tag', async ({ page }) => {
 test('tag manager edits and deletes a tag', async ({ page }) => {
   await page.goto('/tags');
 
-  await page.getByLabel('Edit billing').click();
+  await page.getByRole('button', { name: /Edit billing/ }).click();
   await page.getByLabel('Name').fill('billing ops');
   await page.getByLabel('Green').click();
   await page.getByRole('button', { name: 'Save tag' }).click();
@@ -23,7 +23,10 @@ test('tag manager edits and deletes a tag', async ({ page }) => {
   await expect(page.getByText('"billing ops" updated')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'billing ops' })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Delete billing ops' }).click();
+  await page.locator('ion-item[aria-label="Edit billing ops"]').click();
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await expect(page.getByText('Confirm tag deletion?')).toBeVisible();
+  await page.getByRole('button', { name: 'Confirm' }).click();
   await expect(page.getByText('"billing ops" deleted')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'billing ops' })).toHaveCount(0);
 });
@@ -80,4 +83,33 @@ test('edit-contact can add and remove a phone number', async ({ page }) => {
 
   await page.getByLabel('Remove phone 3').click();
   await expect(page.getByRole('textbox', { name: 'Phone 3' })).toHaveCount(0);
+});
+
+test('edit-job-site manages address and associated contacts', async ({ page }) => {
+  await page.goto('/edit-job-site');
+
+  await expect(page.getByLabel('Address 1')).toHaveValue('121 Commerce Way');
+  await expect(page.getByLabel('City')).toHaveValue('Austin');
+  await expect(page.getByText('priority')).toBeVisible();
+  await expect(page.getByText('Grace Hopper')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Add contact' }).click();
+  await page.getByRole('searchbox', { name: 'search text' }).fill('margaret hamilton');
+  await expect(page.getByRole('heading', { name: 'Margaret Hamilton' })).toBeVisible();
+  await page.getByRole('button', { name: 'Add Margaret Hamilton' }).click();
+  await expect(page.getByText('Contact added')).toBeVisible();
+  await expect(page.getByLabel('Associated contacts').getByText('Margaret Hamilton')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Add contact' }).click();
+  await page.getByLabel('Create contact').click();
+  await page.getByLabel('First name').fill('Dorothy');
+  await page.getByLabel('Last name').fill('Vaughan');
+  await page.getByLabel('Add phone number').click();
+  await page.getByRole('textbox', { name: 'Phone 1' }).fill('555-0111');
+  await page.getByLabel('Notes', { exact: true }).fill('New site access contact.');
+  await page.getByRole('button', { name: 'Save contact' }).click();
+  await expect(page.getByLabel('Associated contacts').getByText('Dorothy Vaughan')).toBeVisible();
+
+  await page.getByLabel('Remove Grace Hopper').click();
+  await expect(page.getByText('Grace Hopper')).toHaveCount(0);
 });

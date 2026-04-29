@@ -57,23 +57,11 @@
         } @else {
           <ion-list lines="full" class="managed-tag-list">
             @for (tag of store.visibleTags(); track tag.id) {
-              <ion-item>
-                <span class="tag-token" [style]="tagStyle(tag.color)" slot="start">
+              <ion-item button [detail]="false" [attr.aria-label]="'Edit ' + tag.name" (click)="store.openEdit(tag)">
+                <div class="tag-token" [style]="tagStyle(tag.color)" slot="start">
                   <ion-icon name="pricetag" aria-hidden="true" />
-                  <span>{{ tag.name }}</span>
-                </span>
-                <ion-label>
                   <h2>{{ tag.name }}</h2>
-                  <p>{{ tag.color }}</p>
-                </ion-label>
-                <ion-buttons slot="end">
-                  <ion-button [attr.aria-label]="'Edit ' + tag.name" (click)="store.openEdit(tag)">
-                    <ion-icon name="create" />
-                  </ion-button>
-                  <ion-button color="danger" [attr.aria-label]="'Delete ' + tag.name" (click)="store.deleteTag(tag)">
-                    <ion-icon name="trash" />
-                  </ion-button>
-                </ion-buttons>
+                </div>
               </ion-item>
             } @empty {
               <ion-item>
@@ -109,7 +97,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <form class="tag-editor-form" (ngSubmit)="store.saveTag()">
+        <div class="tag-editor-form">
           <ion-item>
             <ion-input
               label="Name"
@@ -120,21 +108,6 @@
               required
               (ngModelChange)="store.setEditorName($event)"
             />
-          </ion-item>
-
-          <ion-item>
-            <ion-select
-              label="Color"
-              labelPlacement="stacked"
-              interface="popover"
-              [ngModel]="store.editorColor()"
-              name="tagColor"
-              (ngModelChange)="store.setEditorColor($event)"
-            >
-              @for (color of store.colors(); track color.name) {
-                <ion-select-option [value]="color.name">{{ color.label }}</ion-select-option>
-              }
-            </ion-select>
           </ion-item>
 
           <div class="palette-preview" aria-label="Selected color preview">
@@ -157,14 +130,49 @@
             <ion-text color="danger" class="modal-error">{{ store.error() }}</ion-text>
           }
 
-          <ion-button type="submit" expand="block" [disabled]="!store.canSave()">
-            @if (store.saving()) {
-              <ion-spinner name="crescent" />
-            } @else {
-              Save tag
+          <div class="editor-actions">
+            @if (store.editingTag()) {
+              <ion-button
+                type="button"
+                color="danger"
+                fill="outline"
+                [disabled]="store.saving()"
+                (click)="store.openDeleteConfirm()"
+              >
+                <ion-icon name="trash" slot="start" />
+                Delete
+              </ion-button>
             }
-          </ion-button>
-        </form>
+
+            <ion-button type="button" [disabled]="!store.canSave()" (click)="store.saveTag()">
+              @if (store.saving()) {
+                <ion-spinner name="crescent" />
+              } @else {
+                Save tag
+              }
+            </ion-button>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal
+    class="delete-confirm-modal"
+    [isOpen]="store.deleteConfirmOpen()"
+    [breakpoints]="[0, 0.32]"
+    [initialBreakpoint]="0.32"
+    (didDismiss)="store.closeDeleteConfirm()"
+  >
+    <ng-template>
+      <ion-content>
+        <section class="delete-confirm">
+          <h2>Confirm tag deletion?</h2>
+          <div class="delete-confirm-actions">
+            <ion-button color="danger" expand="block" (click)="store.deleteEditingTag()">Confirm</ion-button>
+            <ion-button fill="outline" expand="block" (click)="store.closeDeleteConfirm()">Cancel</ion-button>
+          </div>
+        </section>
       </ion-content>
     </ng-template>
   </ion-modal>

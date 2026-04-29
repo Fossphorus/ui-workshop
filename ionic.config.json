@@ -1,0 +1,7 @@
+{
+  "name": "ui-workshop",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

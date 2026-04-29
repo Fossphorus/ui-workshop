@@ -20,5 +20,10 @@ export const routes: Routes = [
     path: 'edit-contact',
     loadComponent: () =>
       import('./workshops/edit-contact/edit-contact.page').then((m) => m.EditContactPage)
+  },
+  {
+    path: 'edit-job-site',
+    loadComponent: () =>
+      import('./workshops/edit-job-site/edit-job-site.page').then((m) => m.EditJobSitePage)
   }
 ];

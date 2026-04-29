@@ -1,0 +1,242 @@
+<app-workshop-nav />
+
+<div class="ion-page" id="main-content">
+  <ion-header>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button menu="component-menu" aria-label="Open components">
+          <ion-icon name="menu" />
+        </ion-menu-button>
+      </ion-buttons>
+      <ion-title>Edit job site</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <main class="edit-job-site-shell">
+      <form class="edit-job-site-form" (ngSubmit)="jobSiteStore.save()">
+        <section class="form-field" aria-labelledby="job-site-tags-label">
+          <ion-label id="job-site-tags-label">Associated tags</ion-label>
+          <app-tag-list />
+        </section>
+
+        <section class="form-field address-section" aria-labelledby="job-site-address-label">
+          <ion-label id="job-site-address-label">Address</ion-label>
+
+          <ion-item>
+            <ion-input
+              label="Address 1"
+              labelPlacement="stacked"
+              autocomplete="address-line1"
+              [ngModel]="jobSiteStore.address().address1"
+              name="address1"
+              (ngModelChange)="jobSiteStore.setAddressField('address1', $event)"
+            />
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              label="Address 2"
+              labelPlacement="stacked"
+              autocomplete="address-line2"
+              [ngModel]="jobSiteStore.address().address2"
+              name="address2"
+              (ngModelChange)="jobSiteStore.setAddressField('address2', $event)"
+            />
+          </ion-item>
+
+          <ion-item>
+            <ion-input
+              label="City"
+              labelPlacement="stacked"
+              autocomplete="address-level2"
+              [ngModel]="jobSiteStore.address().city"
+              name="city"
+              (ngModelChange)="jobSiteStore.setAddressField('city', $event)"
+            />
+          </ion-item>
+
+          <div class="state-zip-row">
+            <ion-item>
+              <ion-input
+                label="State"
+                labelPlacement="stacked"
+                autocomplete="address-level1"
+                maxlength="2"
+                [ngModel]="jobSiteStore.address().state"
+                name="state"
+                (ngModelChange)="jobSiteStore.setAddressField('state', $event)"
+              />
+            </ion-item>
+
+            <ion-item>
+              <ion-input
+                label="Zip"
+                labelPlacement="stacked"
+                inputmode="numeric"
+                autocomplete="postal-code"
+                [ngModel]="jobSiteStore.address().zip"
+                name="zip"
+                (ngModelChange)="jobSiteStore.setAddressField('zip', $event)"
+              />
+            </ion-item>
+          </div>
+        </section>
+
+        <section class="form-field" aria-labelledby="job-site-contacts-label">
+          <div class="section-header">
+            <ion-label id="job-site-contacts-label">Associated contacts</ion-label>
+            <ion-button size="small" fill="outline" type="button" (click)="jobSiteStore.openContactPicker()">
+              <ion-icon name="add" slot="start" />
+              Add contact
+            </ion-button>
+          </div>
+
+          <div class="associated-contact-list">
+            @for (contact of jobSiteStore.associatedContacts(); track contact.id) {
+              <div class="associated-contact-row">
+                <div class="contact-copy">
+                  <strong>{{ contact.firstName }} {{ contact.lastName }}</strong>
+                  @if (contact.phoneNumbers[0]) {
+                    <span>{{ contact.phoneNumbers[0].value }}</span>
+                  }
+                </div>
+                <ion-button
+                  fill="clear"
+                  shape="round"
+                  color="medium"
+                  type="button"
+                  [attr.aria-label]="'Remove ' + contact.firstName + ' ' + contact.lastName"
+                  (click)="jobSiteStore.removeAssociatedContact(contact.id)"
+                >
+                  <ion-icon name="close" />
+                </ion-button>
+              </div>
+            } @empty {
+              <ion-text color="medium">No contacts</ion-text>
+            }
+          </div>
+        </section>
+
+        <ion-item>
+          <ion-textarea
+            label="Notes"
+            labelPlacement="stacked"
+            autoGrow="true"
+            rows="5"
+            [ngModel]="jobSiteStore.notes()"
+            name="notes"
+            (ngModelChange)="jobSiteStore.setNotes($event)"
+          />
+        </ion-item>
+
+        @if (!jobSiteStore.canSave()) {
+          <ion-note color="danger">Address 1 and city are required.</ion-note>
+        }
+
+        <div class="form-actions">
+          <ion-button type="button" fill="outline" color="medium" (click)="jobSiteStore.cancel()">Cancel</ion-button>
+          <ion-button type="submit" [disabled]="!jobSiteStore.canSave()">Save</ion-button>
+        </div>
+      </form>
+    </main>
+  </ion-content>
+
+  <ion-modal
+    class="contact-picker-modal"
+    [isOpen]="jobSiteStore.contactPickerOpen()"
+    (didDismiss)="jobSiteStore.closeContactPicker()"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Add contact</ion-title>
+          <ion-buttons slot="end">
+            <ion-button aria-label="Close contact picker" (click)="jobSiteStore.closeContactPicker()">
+              <ion-icon name="close" />
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <div class="contact-picker-shell">
+          <div class="contact-picker-tools">
+            <ion-searchbar
+              placeholder="Search contacts"
+              [ngModel]="jobSiteStore.contactSearch()"
+              name="contactSearch"
+              (ngModelChange)="jobSiteStore.setContactSearch($event)"
+            />
+            <ion-button type="button" aria-label="Create contact" (click)="jobSiteStore.openAddContact()">
+              <ion-icon name="person-add" slot="icon-only" />
+            </ion-button>
+          </div>
+
+          <ion-list lines="full">
+            @for (contact of jobSiteStore.filteredContacts(); track contact.id) {
+              <ion-item
+                button
+                [disabled]="jobSiteStore.isContactAssociated(contact.id)"
+                [detail]="false"
+                [attr.aria-label]="'Add ' + contact.firstName + ' ' + contact.lastName"
+                (click)="jobSiteStore.addAssociatedContact(contact.id)"
+              >
+                <ion-label>
+                  <h2>{{ contact.firstName }} {{ contact.lastName }}</h2>
+                  @if (contact.phoneNumbers[0]) {
+                    <p>{{ contact.phoneNumbers[0].value }}</p>
+                  }
+                </ion-label>
+                @if (jobSiteStore.isContactAssociated(contact.id)) {
+                  <ion-note slot="end">Added</ion-note>
+                }
+              </ion-item>
+            } @empty {
+              <ion-item lines="none">
+                <ion-label color="medium">No contacts match that search</ion-label>
+              </ion-item>
+            }
+          </ion-list>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal class="add-contact-modal" [isOpen]="jobSiteStore.addContactOpen()" (didDismiss)="jobSiteStore.closeAddContact()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Create contact</ion-title>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content>
+        <app-contact-form
+          [firstName]="jobSiteStore.draftContact().firstName"
+          [lastName]="jobSiteStore.draftContact().lastName"
+          [phoneNumbers]="jobSiteStore.draftContact().phoneNumbers"
+          [notes]="jobSiteStore.draftContact().notes"
+          [canSave]="jobSiteStore.canCreateContact()"
+          [showCancel]="true"
+          (firstNameChange)="jobSiteStore.setDraftContactField('firstName', $event)"
+          (lastNameChange)="jobSiteStore.setDraftContactField('lastName', $event)"
+          (notesChange)="jobSiteStore.setDraftContactField('notes', $event)"
+          (addPhoneNumber)="jobSiteStore.addDraftPhoneNumber()"
+          (updatePhoneNumber)="jobSiteStore.updateDraftPhoneNumber($event.id, $event.value)"
+          (removePhoneNumber)="jobSiteStore.removeDraftPhoneNumber($event)"
+          (cancelContact)="jobSiteStore.closeAddContact()"
+          (saveContact)="jobSiteStore.createContact()"
+        />
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-toast
+    [isOpen]="!!jobSiteStore.savedMessage()"
+    [message]="jobSiteStore.savedMessage()"
+    [duration]="1500"
+    position="bottom"
+    (didDismiss)="jobSiteStore.clearSavedMessage()"
+  />
+</div>

@@ -13,7 +13,7 @@ import {
   MenuController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { person, personCircle, pricetags } from 'ionicons/icons';
+import { business, person, personCircle, pricetags } from 'ionicons/icons';
 
 interface WorkshopRoute {
   path: string;
@@ -63,11 +63,17 @@ export class WorkshopNavComponent {
       label: 'Edit contact',
       description: 'Names, tags, phone numbers, and notes.',
       icon: 'person'
+    },
+    {
+      path: '/edit-job-site',
+      label: 'Edit job site',
+      description: 'Address, tags, contacts, and notes.',
+      icon: 'business'
     }
   ];
 
   constructor() {
-    addIcons({ person, personCircle, pricetags });
+    addIcons({ business, person, personCircle, pricetags });
   }
 
   async close(): Promise<void> {

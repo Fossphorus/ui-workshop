@@ -60,12 +60,15 @@ h1 {
   font-weight: 700;
   gap: 5px;
   line-height: 1;
-  max-width: 118px;
+  max-width: 200px;
   min-height: 28px;
   padding: 4px 7px;
 }
 
-.tag-token span {
+.tag-token h2 {
+  color: inherit;
+  font: inherit;
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -84,6 +87,12 @@ h1 {
   display: grid;
   gap: 14px;
   padding: 14px;
+}
+
+.editor-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .palette-preview {
@@ -107,4 +116,25 @@ h1 {
 
 ion-modal.tag-editor-modal {
   --border-radius: 18px 18px 0 0;
+}
+
+ion-modal.delete-confirm-modal {
+  --border-radius: 18px 18px 0 0;
+}
+
+.delete-confirm {
+  display: grid;
+  gap: 18px;
+  padding: 20px 16px;
+}
+
+.delete-confirm h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.delete-confirm-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
 }

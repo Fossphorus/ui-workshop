@@ -13,6 +13,7 @@ interface TagManagerState {
   editingTagId: string | null;
   editorName: string;
   editorColor: TagColorName;
+  deleteConfirmOpen: boolean;
   saving: boolean;
   toastMessage: string;
   error: string;
@@ -27,6 +28,7 @@ const initialState: TagManagerState = {
   editingTagId: null,
   editorName: '',
   editorColor: 'blue',
+  deleteConfirmOpen: false,
   saving: false,
   toastMessage: '',
   error: ''
@@ -51,6 +53,7 @@ export const TagManagerStore = signalStore(
         return left.name.localeCompare(right.name);
       });
     }),
+    editingTag: computed(() => store.tags().find((tag) => tag.id === store.editingTagId()) ?? null),
     editorTitle: computed(() => (store.editingTagId() ? 'Edit tag' : 'Add tag')),
     canSave: computed(() => Boolean(normalizeTagName(store.editorName())) && !store.saving())
   })),
@@ -89,7 +92,7 @@ export const TagManagerStore = signalStore(
       });
     },
     closeEditor(): void {
-      patchState(store, { editorOpen: false, error: '' });
+      patchState(store, { editorOpen: false, deleteConfirmOpen: false, error: '' });
     },
     setEditorName(editorName: string): void {
       patchState(store, { editorName });
@@ -99,6 +102,16 @@ export const TagManagerStore = signalStore(
     },
     clearToast(): void {
       patchState(store, { toastMessage: '' });
+    },
+    openDeleteConfirm(): void {
+      if (!store.editingTagId()) {
+        return;
+      }
+
+      patchState(store, { deleteConfirmOpen: true });
+    },
+    closeDeleteConfirm(): void {
+      patchState(store, { deleteConfirmOpen: false });
     },
     async saveTag(): Promise<void> {
       const name = normalizeTagName(store.editorName());
@@ -141,6 +154,29 @@ export const TagManagerStore = signalStore(
         patchState(store, {
           tags: store.tags().filter((item) => item.id !== tag.id),
           saving: false,
+          editorOpen: false,
+          deleteConfirmOpen: false,
+          toastMessage: `"${tag.name}" deleted`
+        });
+      } catch (error) {
+        patchState(store, { saving: false, error: getErrorMessage(error) });
+      }
+    },
+    async deleteEditingTag(): Promise<void> {
+      const tag = store.tags().find((item) => item.id === store.editingTagId());
+      if (!tag) {
+        patchState(store, { deleteConfirmOpen: false });
+        return;
+      }
+
+      patchState(store, { saving: true, error: '' });
+      try {
+        await service.deleteTag(tag.id);
+        patchState(store, {
+          tags: store.tags().filter((item) => item.id !== tag.id),
+          saving: false,
+          editorOpen: false,
+          deleteConfirmOpen: false,
           toastMessage: `"${tag.name}" deleted`
         });
       } catch (error) {

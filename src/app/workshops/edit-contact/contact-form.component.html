@@ -1,0 +1,90 @@
+<form class="contact-form" (ngSubmit)="saveContact.emit()">
+  <section class="form-field" aria-labelledby="contact-tags-label">
+    <ion-label id="contact-tags-label">Associated tags</ion-label>
+    <app-tag-list />
+  </section>
+
+  <ion-item>
+    <ion-input
+      label="First name"
+      labelPlacement="stacked"
+      autocomplete="given-name"
+      [ngModel]="firstName"
+      name="firstName"
+      (ngModelChange)="firstNameChange.emit($event)"
+    />
+  </ion-item>
+
+  <ion-item>
+    <ion-input
+      label="Last name"
+      labelPlacement="stacked"
+      autocomplete="family-name"
+      [ngModel]="lastName"
+      name="lastName"
+      (ngModelChange)="lastNameChange.emit($event)"
+    />
+  </ion-item>
+
+  <section class="form-field" aria-labelledby="phone-numbers-label">
+    <ion-label id="phone-numbers-label">Phone numbers</ion-label>
+
+    <div class="phone-list">
+      @for (phoneNumber of phoneNumbers; track phoneNumber.id; let index = $index) {
+        <div class="phone-row">
+          <ion-item>
+            <ion-input
+              [label]="'Phone ' + (index + 1)"
+              labelPlacement="stacked"
+              inputmode="tel"
+              autocomplete="tel"
+              [ngModel]="phoneNumber.value"
+              [name]="phoneNumber.id"
+              (ngModelChange)="updatePhoneNumber.emit({ id: phoneNumber.id, value: $event })"
+            />
+          </ion-item>
+          <ion-button
+            fill="clear"
+            shape="round"
+            color="medium"
+            type="button"
+            [attr.aria-label]="'Remove phone ' + (index + 1)"
+            (click)="removePhoneNumber.emit(phoneNumber.id)"
+          >
+            <ion-icon name="close" />
+          </ion-button>
+        </div>
+      } @empty {
+        <ion-text color="medium">No phone numbers</ion-text>
+      }
+    </div>
+
+    <ion-button class="add-number-button" fill="outline" expand="block" type="button" aria-label="Add phone number" (click)="addPhoneNumber.emit()">
+      <ion-icon name="add" slot="start" />
+      add number
+    </ion-button>
+  </section>
+
+  <ion-item>
+    <ion-textarea
+      label="Notes"
+      labelPlacement="stacked"
+      autoGrow="true"
+      rows="5"
+      [ngModel]="notes"
+      name="notes"
+      (ngModelChange)="notesChange.emit($event)"
+    />
+  </ion-item>
+
+  @if (!canSave) {
+    <ion-note color="danger">First or last name is required.</ion-note>
+  }
+
+  <div class="contact-form-actions" [class.single-action]="!showCancel">
+    @if (showCancel) {
+      <ion-button type="button" fill="outline" color="medium" (click)="cancelContact.emit()">Cancel</ion-button>
+    }
+    <ion-button type="submit" expand="block" [disabled]="!canSave">{{ saveLabel }}</ion-button>
+  </div>
+</form>
